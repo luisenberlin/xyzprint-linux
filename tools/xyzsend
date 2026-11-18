@@ -1,0 +1,233 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: MIT
+#
+# xyzsend — imprime un G-code en la da Vinci 1.0 Pro en un solo paso.
+#
+#   xyzsend modelo.gcode          # empaqueta a .3w y lo sube (arranca la impresión)
+#   xyzsend modelo.3w             # sube un .3w ya empaquetado
+#   xyzsend -y modelo.gcode       # sin preguntar
+#   xyzsend --dry-run modelo.gcode  # solo empaqueta, no envía
+#
+# Se puede lanzar desde cualquier directorio: resuelve rutas absolutas y localiza
+# xyzprint-cli junto a este script, en ~/.local/opt/xyzprint/bin o en el PATH.
+
+set -euo pipefail
+
+PROG="$(basename "$0")"
+
+# ---------------------------------------------------------------- localización
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+SELF_DIR="$(dirname "$SELF")"
+PREFIX="$(dirname "$SELF_DIR")"           # <prefix>/bin/xyzsend -> <prefix>
+
+find_cli() {
+    if [[ -n "${XYZPRINT_CLI:-}" ]]; then
+        printf '%s\n' "$XYZPRINT_CLI"
+        return
+    fi
+    local candidate
+    for candidate in \
+        "$SELF_DIR/xyzprint-cli" \
+        "$SELF_DIR/../build/xyzprint-cli" \
+        "$PREFIX/bin/xyzprint-cli" \
+        "$HOME/.local/opt/xyzprint/bin/xyzprint-cli" \
+        "$HOME/.local/bin/xyzprint-cli" \
+        "/usr/local/bin/xyzprint-cli" \
+        "/usr/bin/xyzprint-cli"
+    do
+        if [[ -x "$candidate" ]]; then
+            printf '%s\n' "$candidate"
+            return
+        fi
+    done
+    command -v xyzprint-cli 2>/dev/null || true
+}
+
+CLI="$(find_cli)"
+
+# ------------------------------------------------------------------- opciones
+PORT="/dev/ttyACM0"
+ASSUME_YES=0
+DRY_RUN=0
+NAME=""
+OUTPUT=""
+FILE=""
+
+usage() {
+    cat <<EOF
+uso: $PROG [opciones] <fichero.gcode|.3w>
+
+Empaqueta el G-code en .3w (si hace falta) y lo sube a la impresora.
+La impresión ARRANCA al terminar la subida.
+
+opciones:
+  -p, --port PUERTO   puerto serie (por defecto $PORT)
+  -y, --yes           no preguntar confirmación
+  -n, --name NOMBRE   nombre que se guarda en la impresora
+  -o, --output RUTA   ruta del .3w generado (por defecto, junto al G-code)
+      --dry-run       solo empaqueta, no envía nada
+  -h, --help          esta ayuda
+
+ejemplos:
+  $PROG ~/Descargas/pieza.gcode
+  $PROG -y -p /dev/ttyACM0 pieza.gcode
+  $PROG --dry-run pieza.gcode      # valida el .3w sin imprimir
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -p|--port)    PORT="${2:?falta el puerto}"; shift 2 ;;
+        -y|--yes)     ASSUME_YES=1; shift ;;
+        -n|--name)    NAME="${2:?falta el nombre}"; shift 2 ;;
+        -o|--output)  OUTPUT="${2:?falta la ruta}"; shift 2 ;;
+        --dry-run)    DRY_RUN=1; shift ;;
+        -h|--help)    usage; exit 0 ;;
+        --)           shift; break ;;
+        -*)           echo "error: opción desconocida: $1" >&2; usage >&2; exit 2 ;;
+        *)            break ;;
+    esac
+done
+
+if [[ $# -lt 1 ]]; then
+    usage >&2
+    exit 2
+fi
+FILE="$1"
+shift
+if [[ $# -gt 0 ]]; then
+    echo "error: sobra algún argumento: $*" >&2
+    exit 2
+fi
+
+# ------------------------------------------------------------------- el fichero
+if [[ ! -e "$FILE" ]]; then
+    echo "error: no existe el fichero: $FILE" >&2
+    exit 1
+fi
+FILE="$(readlink -f "$FILE")"          # funciona desde cualquier directorio
+
+SUFFIX="${FILE##*.}"
+SUFFIX="${SUFFIX,,}"
+case "$SUFFIX" in
+    gcode|gco|g|nc|3w) ;;
+    stl|obj|3mf|step|stp)
+        echo "error: $FILE es un modelo, no G-code. Lamínalo primero con Cura" >&2
+        echo "       (File > Save to Disk) y luego pasa el .gcode a $PROG." >&2
+        exit 1
+        ;;
+    *)
+        echo "aviso: extensión desconocida (.$SUFFIX); se tratará como G-code" >&2
+        ;;
+esac
+
+SIZE="$(stat -c %s "$FILE")"
+SIZE_H="$(numfmt --to=iec --suffix=B "$SIZE" 2>/dev/null || echo "$SIZE B")"
+
+if [[ -z "$CLI" ]]; then
+    cat >&2 <<'EOF'
+error: no encuentro xyzprint-cli.
+  - compila con: cmake -S src -B build -G Ninja -DCMAKE_BUILD_TYPE=Release && cmake --build build
+  - instala con: ./tools/install-local.sh
+  - o define XYZPRINT_CLI=/ruta/a/xyzprint-cli
+EOF
+    exit 1
+fi
+
+# Librerías empaquetadas junto al binario (instalación portable).
+if [[ -d "$(dirname "$CLI")/../lib" ]]; then
+    export LD_LIBRARY_PATH="$(dirname "$CLI")/../lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+fi
+
+# Tiempo estimado. Se prefiere "; print_time =" (cabecera de xyzprint, ya
+# calculada) porque CuraEngine por CLI deja ";TIME:6666" como marcador.
+ETA=""
+for key in '; print_time =' ';TIME:'; do
+    line="$(grep -m1 -F "$key" "$FILE" 2>/dev/null || true)"
+    if [[ -n "$line" ]]; then
+        secs="${line#*=}"
+        secs="${secs//[^0-9]/}"
+        if [[ -n "$secs" && "$secs" -gt 0 && "$secs" != 6666 ]]; then
+            ETA="$((secs / 3600)) h $(((secs % 3600) / 60)) min"
+            break
+        fi
+    fi
+done
+
+echo "fichero : $FILE"
+echo "tamaño  : $SIZE_H"
+[[ -n "$ETA" ]] && echo "tiempo  : ~$ETA (estimado por el laminador)"
+echo "puerto  : $PORT"
+echo "cli     : $CLI"
+
+if [[ "$DRY_RUN" -eq 1 ]]; then
+    out3w="$OUTPUT"
+    if [[ -z "$out3w" ]]; then
+        case "$SUFFIX" in
+            3w) out3w="$FILE" ;;
+            *)  out3w="${FILE%.*}.3w" ;;
+        esac
+    fi
+    echo
+    echo "== --dry-run: solo se empaqueta, no se envía nada =="
+    if [[ "$SUFFIX" == "3w" ]]; then
+        "$CLI" inspect "$FILE" | sed -n '1,7p'
+    else
+        "$CLI" wrap "$FILE" "$out3w" ${NAME:+--name "$NAME"}
+        "$CLI" inspect "$out3w" | sed -n '1,7p'
+    fi
+    exit 0
+fi
+
+# ------------------------------------------------------------------ confirmar
+if [[ "$ASSUME_YES" -eq 0 ]]; then
+    if [[ -t 0 ]]; then
+        echo
+        read -r -p "¿Imprimir ahora en la da Vinci? [s/N] " reply
+        case "$reply" in
+            s|S|si|sí|SI|SÍ|y|Y|yes) ;;
+            *) echo "cancelado."; exit 1 ;;
+        esac
+    else
+        echo "sin terminal: se asume --yes (invocación desde el escritorio)"
+    fi
+fi
+
+# ---------------------------------------------------------------- estado previo
+if [[ -x "$CLI" && -e "$PORT" ]]; then
+    echo
+    echo "== estado antes de subir =="
+    if estado="$(timeout 15 "$CLI" status --port "$PORT" 2>/dev/null)"; then
+        printf '%s\n' "$estado" | grep -E '^(nombre|estado|temperaturas|trabajo):' || true
+        codigo="$(printf '%s\n' "$estado" | sed -n 's/^estado: *\([0-9]*\).*/\1/p')"
+        case "$codigo" in
+            ""|9511) ;;
+            9505) echo "aviso: la impresora está imprimiendo; la subida se rechazará (E0)." >&2 ;;
+            9509) echo "aviso: hay un trabajo terminado sin confirmar; pulsa OK en el LCD" >&2
+                  echo "       para volver al reposo antes de subir otro fichero." >&2 ;;
+            *)    echo "aviso: la impresora no está en reposo (estado $codigo);" >&2
+                  echo "       si rechaza la subida con E0, espera a que termine o apágala." >&2 ;;
+        esac
+    else
+        echo "aviso: no se pudo consultar el estado; se intenta la subida igualmente" >&2
+    fi
+fi
+
+# --------------------------------------------------------------------- enviar
+echo
+echo "== empaquetando y subiendo =="
+rc=0
+"$CLI" send "$FILE" --yes --port "$PORT" \
+    ${NAME:+--name "$NAME"} ${OUTPUT:+--output "$OUTPUT"} || rc=$?
+
+echo
+if [[ "$rc" -eq 0 ]]; then
+    echo "Impresión lanzada."
+    echo "  seguir : $CLI status --port $PORT"
+    echo "  pausar : $CLI pause  --port $PORT"
+    echo "  parar  : $CLI cancel --port $PORT"
+else
+    echo "La subida falló (código $rc). Comprueba el cable, que la impresora" >&2
+    echo "esté encendida y que el puerto sea el correcto ($CLI ports)." >&2
+fi
+exit "$rc"

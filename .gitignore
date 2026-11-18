@@ -1,0 +1,18 @@
+# Artefactos de compilación
+build/
+dist/
+
+# Ficheros de impresión (pueden ser grandes y no son código)
+*.3w
+*.gcode
+*.stl
+*.obj
+*.3mf
+
+# Python
+__pycache__/
+*.pyc
+
+# Editores / sistema
+.DS_Store
+*.swp

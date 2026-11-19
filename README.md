@@ -1,5 +1,10 @@
 # xyzprint — da Vinci 1.0 Pro desde Linux
 
+[![CI](https://github.com/luisenberlin/xyzprint-linux/actions/workflows/build.yml/badge.svg)](https://github.com/luisenberlin/xyzprint-linux/actions/workflows/build.yml)
+[![Licencia: MIT](https://img.shields.io/badge/licencia-MIT-green.svg)](LICENSE)
+
+🇪🇸 Español · 🇬🇧 [English](README.en.md)
+
 Imprime en la **XYZprinting da Vinci 1.0 Pro** desde Linux sin Wine, sin máquina
 virtual y sin el software oficial de Windows: lamina con CuraEngine, empaqueta el
 `.3w` y lo envía por USB directamente a la impresora.
@@ -36,12 +41,20 @@ virtual y sin el software oficial de Windows: lamina con CuraEngine, empaqueta e
 | Interfaz gráfica | pendiente (CLI + Caja por ahora) |
 | Plugin de Cura | pendiente |
 
+## Probado en
+
+| Impresora | Firmware | Sistema | Resultado |
+| --------- | -------- | ------- | --------- |
+| da Vinci 1.0 Pro (`dvF1W0A000`) | 1.4.2 / UI 5.1.5 | Debian/Ubuntu, CuraEngine 4.13 | ✅ impresión completa |
+
+¿Lo has probado con otro modelo, firmware o distribución? Abre un [issue](https://github.com/luisenberlin/xyzprint-linux/issues) con la salida de `xyzprint-cli status` y lo añadimos a la tabla.
+
 ## Requisitos
 
 - Linux x86_64 (probado en Debian/Ubuntu con Qt 6 y CuraEngine 4.13).
 - Qt 6 (`Core` y `SerialPort`) y OpenSSL.
 - `cura-engine` solo si vas a laminar (`slice`).
-- Usuario en el grupo `dialout` para acceder a `/dev/ttyACM0`.
+- Acceso al puerto serie: instala la regla udev (`packaging/udev/99-xyzprinting.rules`, ver más abajo) o añade tu usuario al grupo `dialout`.
 - La impresora conectada por USB (VID:PID `11f1:2520`).
 
 Instalación de dependencias en Debian/Ubuntu:
@@ -57,6 +70,8 @@ sudo apt install build-essential cmake ninja-build \
 ## Instalación rápida
 
 ### Desde el paquete
+
+Descarga el `.tar.gz` (y su `.sha256`) desde [Releases](https://github.com/luisenberlin/xyzprint-linux/releases):
 
 ```sh
 tar xf xyzprint-0.1.0-linux-x86_64.tar.gz
@@ -80,6 +95,15 @@ cualquier carpeta.
 
 Opción portable: `./tools/install-local.sh --bundle` copia también las
 bibliotecas Qt6/OpenSSL necesarias para llevarlo a otro equipo sin instalar Qt.
+
+### Regla udev (acceso sin `sudo`)
+
+```
+sudo install -m 0644 packaging/udev/99-xyzprinting.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules && sudo udevadm trigger
+```
+
+Da acceso a `/dev/ttyACM0` al usuario con sesión local. Si prefieres no usarla, añade tu usuario al grupo `dialout` y reinicia la sesión.
 
 ## Uso
 
@@ -138,13 +162,13 @@ tools/                xyzsend, instaladores, empaquetado, referencia .3w en Node
 profiles/             perfil de CuraEngine para la 1.0 Pro (PLA, 0,4 mm)
 packaging/caja/       extensión Python para el menú contextual de Caja
 packaging/udev/       regla udev opcional
-docs/                 documentación técnica y guías
-how-to.md             guía de instalación, uso y distribución
+docs/                 documentación técnica y guías (incluye how-to.md)
+.github/workflows/    integración continua y publicación de releases
 ```
 
 ## Documentación
 
-- [how-to.md](how-to.md) — instalación, uso, Caja, Cura, distribución y problemas.
+- [docs/how-to.md](docs/how-to.md) — instalación, uso, Caja, Cura, distribución y problemas.
 - [docs/linux-build.md](docs/linux-build.md) — compilar y usar la CLI.
 - [docs/imprimir-desde-cura.md](docs/imprimir-desde-cura.md) — Cura + `xyzsend`.
 - [docs/formato-3w.md](docs/formato-3w.md) — formato `.3w` (cabecera y cifrado).
@@ -175,6 +199,10 @@ node tools/check-profile.mjs     # requiere Node 14+
 ```
 
 Genera `dist/xyzprint-<versión>-linux-x86_64.tar.gz` y su `.sha256`.
+
+## Contribuir
+
+Las pruebas con otros modelos de la familia da Vinci, los informes de errores y las mejoras son bienvenidos; ver [CONTRIBUTING.md](CONTRIBUTING.md). Los cambios entre versiones están en [CHANGELOG.md](CHANGELOG.md) y la hoja de ruta en [docs/plan.md](docs/plan.md).
 
 ## Aviso legal
 

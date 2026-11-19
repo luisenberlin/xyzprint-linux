@@ -1,0 +1,40 @@
+name: Release
+
+# Se ejecuta al subir una etiqueta del tipo v0.1.0
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar dependencias
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build \
+            qt6-base-dev qt6-serialport-dev libssl-dev
+
+      - name: Compilar y probar
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          cmake -S src -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+          ctest --test-dir build --output-on-failure
+
+      - name: Crear el paquete
+        run: ./tools/make-dist.sh
+
+      - name: Publicar la release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.tar.gz
+            dist/*.tar.gz.sha256
+          generate_release_notes: true

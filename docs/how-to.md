@@ -11,9 +11,9 @@ modelo.stl ──Cura──► pieza.gcode ──xyzsend──► pieza.3w ─�
 ```
 
 Para el detalle de Cura y del protocolo, ver
-[`docs/imprimir-desde-cura.md`](docs/imprimir-desde-cura.md),
-[`docs/linux-build.md`](docs/linux-build.md) y
-[`docs/protocolo-serie.md`](docs/protocolo-serie.md).
+[`imprimir-desde-cura.md`](imprimir-desde-cura.md),
+[`linux-build.md`](linux-build.md) y
+[`protocolo-serie.md`](protocolo-serie.md).
 
 ---
 
@@ -80,8 +80,7 @@ ctest --test-dir build --output-on-failure
 ./tools/install-local.sh
 ```
 
-Los tests deben dar **2/2** (`threew`, `profile`). Si `threew` falla por un byte
-de diferencia en `M84`, ver la nota de `LEEME.txt`.
+Los tests deben dar **2/2** (`threew`, `profile`).
 
 ---
 
@@ -199,7 +198,7 @@ El script compila en Release, **ejecuta los tests** y solo empaqueta si pasan.
 | `share/xyzprint/profiles/` | perfil de CuraEngine |
 | `tools/` | `install-local.sh`, `install-caja.sh` |
 | `packaging/caja/` | extensión de Caja |
-| `docs/`, `how-to.md`, `LEEME.txt` | documentación |
+| `docs/`, `README.md`, `LICENSE` | documentación y licencia |
 | `lib/` | solo con `--with-libs` |
 | `src/`, `docs/` | solo con `--with-source` |
 

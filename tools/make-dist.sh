@@ -58,12 +58,14 @@ install -m 0644 "$ROOT"/packaging/udev/*.rules "$STAGE/packaging/udev/"
 install -m 0644 "$ROOT"/docs/*.md "$STAGE/docs/"
 [[ -f "$ROOT/LICENSE" ]] && install -m 0644 "$ROOT/LICENSE" "$STAGE/LICENSE"
 [[ -f "$ROOT/README.md" ]] && install -m 0644 "$ROOT/README.md" "$STAGE/README.md"
+[[ -f "$ROOT/README.en.md" ]] && install -m 0644 "$ROOT/README.en.md" "$STAGE/README.en.md"
 
 if [[ "$WITH_SOURCE" -eq 1 ]]; then
     install -d "$STAGE/src" "$STAGE/docs"
     cp -a "$ROOT/src/." "$STAGE/src/"
     cp -a "$ROOT/docs/." "$STAGE/docs/"
     install -m 0644 "$ROOT/README.md" "$STAGE/README.md"
+    [[ -f "$ROOT/README.en.md" ]] && install -m 0644 "$ROOT/README.en.md" "$STAGE/README.en.md"
     install -m 0644 "$ROOT/LICENSE" "$STAGE/LICENSE"
 fi
 

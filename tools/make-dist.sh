@@ -56,6 +56,10 @@ install -m 0644 "$ROOT"/profiles/*.json "$STAGE/share/xyzprint/profiles/"
 install -m 0644 "$ROOT/packaging/caja/xyzprint-caja.py" "$STAGE/packaging/caja/"
 install -m 0644 "$ROOT"/packaging/udev/*.rules "$STAGE/packaging/udev/"
 install -m 0644 "$ROOT"/docs/*.md "$STAGE/docs/"
+if [[ -d "$ROOT/docs/capturas" ]]; then
+    install -d "$STAGE/docs/capturas"
+    install -m 0644 "$ROOT"/docs/capturas/* "$STAGE/docs/capturas/"
+fi
 [[ -f "$ROOT/LICENSE" ]] && install -m 0644 "$ROOT/LICENSE" "$STAGE/LICENSE"
 [[ -f "$ROOT/README.md" ]] && install -m 0644 "$ROOT/README.md" "$STAGE/README.md"
 [[ -f "$ROOT/README.en.md" ]] && install -m 0644 "$ROOT/README.en.md" "$STAGE/README.en.md"

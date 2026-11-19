@@ -146,6 +146,11 @@ Notas de uso:
 Instala la extensión en `~/.local/share/caja-python/extensions/` y reinicia Caja.
 Requiere `python3-caja` (paquete `python3-caja` en Debian/Ubuntu).
 
+![Diálogo de impresión desde Caja](docs/capturas/dialogo-imprimir-en-3d.png)
+
+*Diálogo de confirmación al elegir «Imprimir en la da Vinci 1.0 Pro» en el menú
+contextual de Caja.*
+
 ## Usar G-code de Cura
 
 Si prefieres laminar en la interfaz de Cura, guarda el G-code y envíalo con

@@ -115,6 +115,20 @@ Notes:
 - The printer must be idle (`state: 9511`) before uploading. After a job it stays at `9509` until you press **OK** on the LCD.
 - Without an interactive terminal (e.g. from Caja) `xyzsend` assumes `-y`.
 
+## Caja context menu
+
+```sh
+./tools/install-caja.sh
+```
+
+Installs the extension in `~/.local/share/caja-python/extensions/` and restarts
+Caja. Requires `python3-caja` and `zenity`.
+
+![Print dialog from Caja](docs/capturas/dialogo-imprimir-en-3d.png)
+
+*Confirmation dialog when choosing «Print on the da Vinci 1.0 Pro» from Caja's
+context menu.*
+
 ## Using G-code from Cura
 
 Save the G-code from Cura's interface and send it with `xyzsend`. The Start G-code must include `M108`, `M191` and `G21 ;` so the printer starts properly. The full guide, with ready-to-copy Start/End G-code, is in [docs/imprimir-desde-cura.md](docs/imprimir-desde-cura.md) (Spanish).

@@ -1,0 +1,61 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 5c6b2f6..014b09a 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -5,22 +5,30 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
+ ## [Sin publicar]
+ 
+ ### Añadido
+-- Integración continua (compilación y tests) y workflow de publicación de releases.
+-- `.gitignore`, `CONTRIBUTING.md`, `CHANGELOG.md` y README en inglés.
+-- Tabla «Probado en» y sección sobre la regla udev en el README.
++- Captura del diálogo de Caja en los README en español e inglés.
+ 
+ ### Corregido
+-- Los scripts de `tools/` no tenían permiso de ejecución en el repositorio (`./tools/install-local.sh` fallaba tras clonar).
+-- El paquete `.tar.gz` ahora incluye la regla udev.
++- `tools/xyzsend`: la variable `LD_LIBRARY_PATH` se declara y se asigna por separado (aviso SC2155 de shellcheck). No cambia el comportamiento.
+ 
+-### Cambiado
+-- `how-to.md` pasa a `docs/how-to.md`.
+-- Se elimina `LEEME.txt` (duplicaba la documentación de `docs/` y del README).
++## [0.1.0] - 2026-11-19
+ 
+-## [0.1.0]
++Primera versión publicada.
+ 
+ ### Añadido
+ - CLI `xyzprint-cli`: `ports`, `status`, `query`, `pause`, `resume`, `cancel`, `complete`, `upload`, `send`, `wrap`, `encode`, `decode`, `inspect` y `slice`.
+ - Protocolo USB serie y formato `.3w` reconstruidos y validados contra una da Vinci 1.0 Pro real.
+ - Laminado con CuraEngine y perfil de la 1.0 Pro (PLA, boquilla de 0,4 mm).
+-- `xyzsend`, instalador local, menú contextual de Caja y empaquetado en `.tar.gz`.
++- `xyzsend`, instalador local, menú contextual de Caja y empaquetado en `.tar.gz` (incluye la regla udev y el README en inglés).
++- Integración continua (compilación y tests) y workflow de publicación de releases.
++- `.gitignore`, `CONTRIBUTING.md`, `CHANGELOG.md` y README en español e inglés.
++- Tabla «Probado en» y sección sobre la regla udev en el README.
++
++### Cambiado
++- `how-to.md` pasa a `docs/how-to.md`.
++- Se elimina `LEEME.txt` (duplicaba la documentación de `docs/` y del README).
++
++### Corregido
++- Los scripts de `tools/` no tenían permiso de ejecución en el repositorio (`./tools/install-local.sh` fallaba tras clonar).
++
++[Sin publicar]: https://github.com/luisenberlin/xyzprint-linux/compare/v0.1.0...HEAD
++[0.1.0]: https://github.com/luisenberlin/xyzprint-linux/releases/tag/v0.1.0
+diff --git a/tools/xyzsend b/tools/xyzsend
+index ca4671f..db8a540 100755
+--- a/tools/xyzsend
++++ b/tools/xyzsend
+@@ -135,8 +135,9 @@ EOF
+ fi
+ 
+ # Librerías empaquetadas junto al binario (instalación portable).
+-if [[ -d "$(dirname "$CLI")/../lib" ]]; then
+-    export LD_LIBRARY_PATH="$(dirname "$CLI")/../lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
++lib_dir="$(dirname "$CLI")/../lib"
++if [[ -d "$lib_dir" ]]; then
++    export LD_LIBRARY_PATH="${lib_dir}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+ fi
+ 
+ # Tiempo estimado. Se prefiere "; print_time =" (cabecera de xyzprint, ya

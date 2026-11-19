@@ -21,7 +21,10 @@ export const REQUIRED_GLOBAL = {
     machine_heated_bed: true,
     machine_extruder_count: 1,
     machine_gcode_flavor: 'RepRap (Marlin/Sprinter)',
-    material_bed_temperature_layer_0: 45
+    material_bed_temperature_layer_0: 45,
+    // CuraEngine 5.x los exige explícitamente al laminar por CLI.
+    roofing_layer_count: 0,
+    flooring_layer_count: 0
 };
 
 export const REQUIRED_EXTRUDER = {
@@ -108,7 +111,7 @@ export function loadProfile(path) {
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-    const path = process.argv[2] ?? 'profiles/davinci-1.0-pro-pla.json';
+    const path = process.argv[2] || 'profiles/davinci-1.0-pro-pla.json';
     let profile;
     try {
         profile = loadProfile(path);
@@ -124,7 +127,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
         process.exit(1);
     }
 
-    console.log(`perfil OK: ${profile.name ?? path}`);
+    console.log(`perfil OK: ${profile.name || path}`);
     console.log(`  cama: ${profile.global.machine_width}x${profile.global.machine_depth}x${profile.global.machine_height} mm`);
     console.log(`  boquilla: ${profile.extruder.machine_nozzle_size} mm, filamento: ${profile.extruder.material_diameter} mm`);
     console.log(`  temperaturas: ${profile.extruder.material_print_temperature_layer_0}/${profile.global.material_bed_temperature_layer_0} C`);

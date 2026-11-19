@@ -1,6 +1,6 @@
 {
   "name": "da Vinci 1.0 Pro — PLA 0.4 mm",
-  "description": "Perfil reconstruido para CuraEngine. Cama 200x200x200 mm, boquilla 0.4 mm, PLA 210/45. La secuencia de arranque y fin imita la de un .3w real generado por XYZprint para daVinciAW10. Calibrar temperaturas y retracción tras la primera prueba.",
+  "description": "Perfil reconstruido para CuraEngine 4.13 y 5.x. Cama 200x200x200 mm, boquilla 0.4 mm, PLA 210/45. La secuencia de arranque y fin imita la de un .3w real generado por XYZprint para daVinciAW10. roofing_layer_count y flooring_layer_count se explícitan a 0 porque CuraEngine 5.x no aplica los valores por defecto al laminar por CLI. Calibrar temperaturas y retracción tras la primera prueba.",
   "global": {
     "machine_name": "XYZprinting da Vinci 1.0 Pro",
     "machine_width": 200,
@@ -38,6 +38,8 @@
     "wall_line_count": 2,
     "top_layers": 3,
     "bottom_layers": 3,
+    "roofing_layer_count": 0,
+    "flooring_layer_count": 0,
     "infill_sparse_density": 10,
     "infill_pattern": "grid",
     "speed_print": 30,

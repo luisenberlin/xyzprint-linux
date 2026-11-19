@@ -118,7 +118,7 @@ xyzprint-cli resume
 xyzprint-cli cancel
 ```
 
-## 4. Configurar Cura 4.13
+## 4. Configurar Cura (4.x y 5.x)
 
 Añadir impresora: **Preferences → Printers → Add → Custom FFF printer**.
 
@@ -165,7 +165,49 @@ G92 E0
 M84
 ```
 
-Luego **File → Save to Disk** y `xyzsend` sobre el `.gcode`.
+Luego **File → Save to Disk** y `xyzsend` sobre el `.gcode`. En Cura 5.x el
+bloque está en *Preferences → Printers → Manage Printers → Machine Settings*.
+
+## 4.1. Compatibilidad entre versiones de Cura
+
+El flujo **Cura → G-code → `xyzsend`** no depende de la versión: `xyzsend` solo
+lee texto G-code. Verificado con un G-code generado por **CuraEngine 5.14.0** y
+empaquetado con `xyzsend --dry-run`: marcadores `G21 ;`, `M108`, `M191` y `M82`
+presentes, `.3w` con CRC-32 válido. El bloque Start/End de esta guía sirve tal
+cual en Cura 5.x.
+
+Antes de enviar cualquier G-code, sea de la versión que sea:
+
+```sh
+node tools/check-gcode.mjs pieza.gcode
+```
+
+Comprueba los marcadores que la impresora necesita e imprime el laminador y el
+tiempo estimados. Si falla, corrige el Start G-code en Cura; no hay que tocar
+`xyzsend`.
+
+### `xyzprint-cli slice` con CuraEngine 5.x
+
+El perfil `profiles/davinci-1.0-pro-pla.json` funciona con CuraEngine 4.13 y
+5.14: incluye `roofing_layer_count` y `flooring_layer_count` a 0, ajustes que
+5.x exige explícitamente al laminar por CLI (4.13 los toma de sus defectos).
+Para usar otro laminador:
+
+```sh
+CURA_ENGINE=/ruta/a/CuraEngine \
+CURA_DEFINITIONS=/ruta/a/resources/definitions \
+xyzprint-cli --keep-gcode salida.gcode slice modelo.stl salida.3w
+```
+
+También están las opciones `--cura` y `--definitions`. Comprueba la versión con
+`CuraEngine --version`.
+
+**Atención con el AppImage de Cura 5.14**: su `CuraEngine` y su Python requieren
+**glibc ≥ 2.38**. En Ubuntu 22.04 (glibc 2.35) el AppImage no llega a abrir. En
+esta investigación se consiguió laminar usando el `CuraEngine` del AppImage con
+una glibc 2.44 aparte, pero no es un uso soportado. Si tu Cura 5.14 no arranca,
+usa un sistema con glibc nueva (Ubuntu 24.04+) o Cura 4.13/5.8 para generar el
+G-code: el resultado es igualmente válido para `xyzsend`.
 
 ## 5. Qué hace `xyzsend` por dentro
 
@@ -221,6 +263,8 @@ extensiones Python salen por stderr.
 | `cabecera de subida: la impresora abortó (E0)` | la impresora rechaza un trabajo nuevo: está imprimiendo, tiene un trabajo a medias o hay que apagarla y encenderla |
 | `aviso: el G-code no contiene M108/M191` | el Start G-code de Cura no es el de §4 |
 | `no se encontró "G21 ;"` | falta `G21 ;` en el Start G-code (no vale `G21` a secas) |
+| `Trying to retrieve setting with no value given: roofing_layer_count` | perfil desactualizado: usa el que incluye `roofing_layer_count` y `flooring_layer_count` |
+| el AppImage de Cura 5.14 no abre | exige glibc ≥ 2.38; usa Ubuntu 24.04+ u otra versión de Cura (ver §4.1) |
 | `crc32 inválido` en `inspect` | `.3w` corrupto o clave AES distinta de la de fábrica |
 
 Tras un corte a mitad de subida, la impresora puede quedarse en modo subida:

@@ -6,8 +6,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Añadido
 - Captura del diálogo de Caja en los README en español e inglés.
+- Compatibilidad con Cura 5.x: validador `tools/check-gcode.mjs` y sección «Compatibilidad entre versiones de Cura» en la guía de Cura.
+- `check-gcode.mjs` y `check-profile.mjs` se incluyen en el paquete binario.
 
 ### Corregido
+- El perfil de CuraEngine declara `roofing_layer_count` y `flooring_layer_count` a 0: CuraEngine 5.x los exige explícitamente al laminar por CLI (4.13 los tomaba de sus valores por defecto).
 - `tools/xyzsend`: la variable `LD_LIBRARY_PATH` se declara y se asigna por separado (aviso SC2155 de shellcheck). No cambia el comportamiento.
 
 ## [0.1.0] - 2026-11-19

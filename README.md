@@ -46,6 +46,7 @@ virtual y sin el software oficial de Windows: lamina con CuraEngine, empaqueta e
 | Impresora | Firmware | Sistema | Resultado |
 | --------- | -------- | ------- | --------- |
 | da Vinci 1.0 Pro (`dvF1W0A000`) | 1.4.2 / UI 5.1.5 | Debian/Ubuntu, CuraEngine 4.13 | ✅ impresión completa |
+| G-code de CuraEngine 5.14 → `.3w` | — | `xyzsend --dry-run` | ✅ CRC válido (sin impresión real) |
 
 ¿Lo has probado con otro modelo, firmware o distribución? Abre un [issue](https://github.com/luisenberlin/xyzprint-linux/issues) con la salida de `xyzprint-cli status` y lo añadimos a la tabla.
 
@@ -155,8 +156,12 @@ contextual de Caja.*
 
 Si prefieres laminar en la interfaz de Cura, guarda el G-code y envíalo con
 `xyzsend`. El Start G-code debe incluir `M108`, `M191` y `G21 ;` para que la
-impresora arranque bien. La guía completa, con el Start/End G-code listo para
-copiar, está en [docs/imprimir-desde-cura.md](docs/imprimir-desde-cura.md).
+impresora arranque bien. El flujo sirve para **Cura 4.x y 5.x** (probado con
+CuraEngine 5.14): no importa la versión porque `xyzsend` solo lee G-code.
+Compruébalo antes de imprimir con `node tools/check-gcode.mjs pieza.gcode`.
+La guía completa, con el Start/End G-code listo para copiar y las notas sobre
+el AppImage de Cura 5.14 (necesita glibc ≥ 2.38), está en
+[docs/imprimir-desde-cura.md](docs/imprimir-desde-cura.md).
 
 ## Estructura del repositorio
 

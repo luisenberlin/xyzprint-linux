@@ -36,6 +36,7 @@ Print on the **XYZprinting da Vinci 1.0 Pro** from Linux with no Wine, no virtua
 | Printer | Firmware | System | Result |
 | ------- | -------- | ------ | ------ |
 | da Vinci 1.0 Pro (`dvF1W0A000`) | 1.4.2 / UI 5.1.5 | Debian/Ubuntu, CuraEngine 4.13 | ✅ full print |
+| G-code from CuraEngine 5.14 → `.3w` | — | `xyzsend --dry-run` | ✅ valid CRC (no real print) |
 
 Tried it with another model, firmware or distribution? Please open an [issue](https://github.com/luisenberlin/xyzprint-linux/issues) with the output of `xyzprint-cli status`.
 
@@ -131,7 +132,7 @@ context menu.*
 
 ## Using G-code from Cura
 
-Save the G-code from Cura's interface and send it with `xyzsend`. The Start G-code must include `M108`, `M191` and `G21 ;` so the printer starts properly. The full guide, with ready-to-copy Start/End G-code, is in [docs/imprimir-desde-cura.md](docs/imprimir-desde-cura.md) (Spanish).
+Save the G-code from Cura's interface and send it with `xyzsend`. The Start G-code must include `M108`, `M191` and `G21 ;` so the printer starts properly. The flow works with **Cura 4.x and 5.x** (tested with CuraEngine 5.14): the version does not matter because `xyzsend` only reads G-code. Check it before printing with `node tools/check-gcode.mjs piece.gcode`. The full guide, with ready-to-copy Start/End G-code and notes about the Cura 5.14 AppImage (it needs glibc ≥ 2.38), is in [docs/imprimir-desde-cura.md](docs/imprimir-desde-cura.md) (Spanish).
 
 ## Repository layout
 
